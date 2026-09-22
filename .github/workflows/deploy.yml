@@ -1,0 +1,39 @@
+name: Deploy Laravel 12 ke InfinityFree
+
+on:
+  push:
+    branches:
+      - main # Robot akan berjalan setiap kali Anda push ke branch 'main'
+
+jobs:
+  web-deploy:
+    name: 🚀 Proses Deploy Proyek
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 🚚 Ambil Kode Terbaru dari GitHub
+      uses: actions/checkout@v4
+
+    - name: ⚙️ Setup Environment PHP 8.2
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2' # Menyesuaikan dengan standar server InfinityFree
+        extensions: mbstring, xml, ctype, iconv, mysql, pdo_mysql
+
+    - name: 📦 Instal Dependensi Laravel (Vendor)
+      run: |
+        composer install --no-dev --optimize-autoloader --no-ansi --no-interaction --no-progress
+
+    - name: 📂 Unggah File ke InfinityFree via FTP
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      with:
+        server: ${{ secrets.FTP_SERVER }}
+        username: ${{ secrets.FTP_USERNAME }}
+        password: ${{ secrets.FTP_PASSWORD }}
+        server-dir: htdocs/ # File akan diletakkan langsung di dalam folder htdocs
+        exclude: |
+          **/.git*
+          **/.git*/**
+          node_modules/**
+          tests/**
+          storage/logs/*.log
